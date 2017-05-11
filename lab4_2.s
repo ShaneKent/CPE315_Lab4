@@ -1,28 +1,42 @@
 # Lab 4, Part 2
+# Shane Kent and Nicole Butler
 
 .data
-data: .word 128
 hextab: .asciiz "0123456789ABCDEF"
-
+output:
 .text
 .globl main
 
-main:	la $a0, data
-	lw $a0, ($a0)
-	jal bintohex
+main:	li 	$a0, 4294967295
+	jal 	bintohex
 	
+	li	$a0, 16
+	jal	bintohex
+	
+end:	b	end
+
 bintohex:
-	li $t3, 8
+	li 	$t7, 28
+	move	$t0, $a0
 	
-loop:	srl $t0, $a0, 28
-	sll $a0, $a0, 4
-	la $t4, hextab
-	add $t4, $t4, $t0
-	lb $t1, 0($t4)
-	sb $t1, 0($a1)
-	addi $a1, $a1, 1
-	addi $t3, $t3, -1
-	bne $t3, $zero, loop
-	sb $zero, 0($a1)
+loop:	srlv 	$t1, $t0, $t7
+	and	$t1, 15
 	
-	jr $ra
+	la	$t2, hextab
+	add	$t2, $t2, $t1
+	lb	$t3, 0($t2)
+	
+	sb	$t3, output
+	la	$a0, output
+	ori	$v0, 4
+	syscall
+	
+	add	$t7, $t7, -4
+	bne 	$t7, -4, loop
+	
+	add	$t3, $zero, 10
+	sb	$t3, output
+	la	$a0, output
+	syscall
+	
+	jr	$ra
