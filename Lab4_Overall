@@ -1,0 +1,153 @@
+# Lab 4
+# Shane Kent and Nicole Butler
+
+.data
+hextab: .asciiz "0123456789ABCDEF"
+output:
+.text
+.globl main
+
+main:	
+	li 	$a0, 4294967295		#Start of testing Part 2
+	jal 	bintohex
+	
+	li	$a0, 16
+	jal	bintohex
+	
+	li	$a0, 0			#Start of testing Part 3
+	jal	Fibonacci
+	
+	li	$a0, 1
+	jal	Fibonacci
+	
+	li	$a0, 5
+	jal	Fibonacci
+	
+	li	$a0, 10
+	jal	Fibonacci
+	
+	li	$a0, 20
+	jal	Fibonacci
+	
+	li	$a0, 322222		#Start of testing Part 4
+	li	$a1, 3
+	li	$a2, 322222
+	li	$a3, 3
+	jal	double_add
+	or	$s0, $v0, $v0
+	or	$s1, $v1, $v1
+	andi	$v0, 0 
+	or	$a0, $s1, $s1
+	jal	bintohex
+	or	$a0, $s0, $s0
+	jal	bintohex
+	li	$s0, 0
+	li	$s1, 0
+	
+	li	$a0, 128		#Start of testing Part 5
+	li	$a1, 2048
+	li	$a2, 8
+	jal 	double_shift
+	
+	li	$a0, 0x6608C000		#Start of testing Part 6
+	jal	mask
+	or	$a0, $v0, $v0
+	li	$v0, 0
+	jal	bintohex
+	
+	li	$a0, 0xC2008000
+	jal	mask
+	or	$a0, $v0, $v0
+	li	$v0, 0
+	jal	bintohex
+	
+	li	$a0, 0x19070FFF
+	jal	mask
+	or	$a0, $v0, $v0
+	li	$v0, 0
+	jal	bintohex
+	
+end:	b	end
+
+bintohex:				#Part 2 Code
+	li 	$t7, 28
+	move	$t0, $a0
+	
+bloop:	srlv 	$t1, $t0, $t7
+	and	$t1, 15
+	
+	la	$t2, hextab
+	add	$t2, $t2, $t1
+	lb	$t3, 0($t2)
+	
+	sb	$t3, output
+	la	$a0, output
+	ori	$v0, 4
+	syscall
+	
+	add	$t7, $t7, -4
+	bne 	$t7, -4, bloop
+	
+	add	$t3, $zero, 10
+	sb	$t3, output
+	la	$a0, output
+	syscall
+	
+	jr	$ra
+
+Fibonacci:				#Part 3 Code
+	li	$t0, 0
+	li	$t1, 1
+	li	$t2, 1
+	
+	beq	$a0, 0, done_zero
+	
+floop:	
+	beq	$t2, $a0, done
+	add	$t3, $t0, $t1
+	move	$t0, $t1
+	move	$t1, $t3
+	
+	add	$t2, $t2, 1
+	b	floop
+
+done:
+	move	$v0, $t1
+	jr	$ra
+	
+done_zero:
+	li	$v0, 0
+	jr	$ra
+
+double_add:				#Part 4 Code
+	addu	$v1, $a1, $a3
+	sltu	$t0, $v1, $a1
+	add	$a0, $t0, $a0
+	add	$v0, $a0, $a2
+	jr	$ra
+	
+double_shift:				#Part 5 Code
+	li	$t1, 0
+dloop:
+	srl	$a1, $a1, 1
+	and	$t0, $a0, 1
+	srl	$a0, $a0, 1
+	sll	$t0, $t0, 31
+	or	$a1, $a1, $t0
+	add	$t1, $t1, 1
+	
+	bne	$t1, $a2, dloop
+	
+mask:	andi	$t0, $a0, 0xE0000000	#Part 6 Code
+	andi	$t1, $a0, 0x06000000
+	andi	$t2, $a0, 0x00080000
+	andi	$t3, $a0, 0x0000F000
+	srl	$t0, $t0, 25
+	srl	$t1, $t1, 25
+	srl	$t2, $t2, 11
+	li	$v0, 0
+	or	$v0, $v0, $t0
+	or	$v0, $v0, $t1
+	or	$v0, $v0, $t2
+	or	$v0, $v0, $t3
+	jr	$ra
